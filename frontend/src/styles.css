@@ -1,0 +1,4 @@
+/* Minimal styles for starter app */
+body { background: #fafafa; color:#111; }
+a { color: #0366d6; text-decoration: none; }
+button { padding:8px 12px; border-radius:6px; border:1px solid #ccc; background:white; cursor:pointer; }

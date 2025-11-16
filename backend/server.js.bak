@@ -1,0 +1,62 @@
+require('dotenv').config();
+const express = require('express');
+const axios = require('axios');
+const cors = require('cors');
+const helmet = require('helmet');
+const app = express();
+app.use(helmet());
+app.use(cors());
+app.use(express.json());
+
+const PORT = process.env.PORT || 3000;
+
+/**
+ * Note: This backend provides a functional skeleton.
+ * - Replace placeholders with real Meta Graph API logic when ready.
+ * - Access tokens must be stored securely (DB encryption) in production.
+ */
+
+// Simple health
+app.get('/health', (req, res) => res.json({ok:true, ts: Date.now()}));
+
+// Step 1: Redirect user to Meta OAuth
+app.get('/auth/url', (req, res) => {
+  const appId = process.env.META_APP_ID || 'APP_ID';
+  const redirect = encodeURIComponent(process.env.OAUTH_REDIRECT_URI || 'http://localhost:3000/auth/callback');
+  const scopes = encodeURIComponent('instagram_basic,pages_read_engagement,instagram_manage_insights');
+  const url = `https://www.facebook.com/v16.0/dialog/oauth?client_id=${appId}&redirect_uri=${redirect}&scope=${scopes}&response_type=code`;
+  return res.json({url});
+});
+
+// Step 2: Callback (exchange code -> token) (placeholder)
+app.get('/auth/callback', async (req, res) => {
+  const code = req.query.code;
+  if(!code) return res.status(400).send('missing code query param (this is a placeholder).');
+  // In production: exchange code for short-lived token, then exchange for long-lived token.
+  // We'll show instructions instead of performing an exchange here.
+  res.send(`<h2>Callback received</h2><p>Code: ${code}</p><p>This starter app does not automatically exchange the code. See README for exact commands to exchange code for tokens.</p>`);
+});
+
+// Example endpoint: get sample dashboard data (stubbed)
+app.get('/api/dashboard', (req, res) => {
+  const sample = {
+    followers: 12345,
+    follower_change_7d: 120,
+    impressions_7d: 45234,
+    reach_7d: 37800,
+    engagement_rate: 3.8,
+    top_posts: [
+      {id:'1', caption:'New product', likes:820, comments:54, impressions:12000, engagement:6.8, media_url:''},
+      {id:'2', caption:'Behind the scenes', likes:420, comments:22, impressions:8200, engagement:4.2, media_url:''}
+    ],
+    audience: {top_countries:['US','EG','SA'], age_ranges:{'18-24':32,'25-34':45}}
+  };
+  res.json(sample);
+});
+
+// Proxy endpoint template to call Meta Graph API (requires server-side token management)
+app.get('/api/ig/:igUserId/media', async (req, res) => {
+  return res.json({note:'This endpoint is a template. Implement Graph API calls server-side using stored tokens. See README.'});
+});
+
+app.listen(PORT, ()=> console.log('Server running on port', PORT));
