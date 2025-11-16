@@ -1,20 +1,34 @@
-# Multi-stage Dockerfile: build frontend then run backend
+# ============ FRONTEND BUILD =============
 FROM node:18-alpine AS build-frontend
 WORKDIR /app/frontend
+
+# نسخ package.json
 COPY frontend/package*.json ./
-RUN npm ci
+
+# استخدم npm install بدل npm ci
+RUN npm install
+
+# نسخ باقي ملفات الواجهة
 COPY frontend/ .
+
+# بناء الواجهة
 RUN npm run build
 
-FROM node:18-alpine AS backend
+# ============ BACKEND BUILD =============
+FROM node:18-alpine
 WORKDIR /app
-# copy backend
+
+# نسخ ملفات backend
 COPY backend/package*.json ./backend/
-RUN cd backend && npm ci --production
+
+# استخدم npm install بدل npm ci
+RUN cd backend && npm install --omit=dev
+
+# نسخ باقي ملفات backend
 COPY backend ./backend
-# copy built frontend into backend/public or frontend/dist
-COPY --from=build-frontend /app/frontend/dist ./backend/dist
-ENV NODE_ENV=production
-WORKDIR /app/backend
+
+# نسخ ملفات الواجهة المبنية
+COPY --from=build-frontend /app/frontend/dist ./backend/public
+
 EXPOSE 3000
-CMD ["node","server.js"]
+CMD ["node", "backend/server.js"]
